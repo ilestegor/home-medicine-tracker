@@ -1,0 +1,12 @@
+# Мастер-чейнджлог обязан быть YAML/XML/JSON: формат «formatted SQL» не поддерживает include.
+# Поэтому здесь только список файлов, вся схема — в changes/*.sql.
+databaseChangeLog:
+  - include: { file: changes/001-create-medicine.sql,      relativeToChangelogFile: true }
+  - include: { file: changes/002-create-stock-item.sql,    relativeToChangelogFile: true }
+  - include: { file: changes/003-create-regimen.sql,       relativeToChangelogFile: true }
+  - include: { file: changes/004-create-intake-record.sql, relativeToChangelogFile: true }
+  - include: { file: changes/005-create-indexes.sql,       relativeToChangelogFile: true }
+  - include: { file: changes/006-move-unit-to-medicine.sql,     relativeToChangelogFile: true }
+  - include: { file: changes/007-stock-item-optimistic-lock.sql, relativeToChangelogFile: true }
+  - include: { file: changes/008-create-app-user.sql,            relativeToChangelogFile: true }
+  - include: { file: changes/009-add-user-to-medicine.sql,       relativeToChangelogFile: true }

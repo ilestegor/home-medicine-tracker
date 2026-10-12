@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: medtracker-backend
+  namespace: medtracker
+spec:
+  selector:
+    app: medtracker-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medtracker-backend
+  namespace: medtracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medtracker-backend
+  template:
+    metadata:
+      labels:
+        app: medtracker-backend
+    spec:
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: backend
+          image: medtracker-backend:0.0.1
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: medtracker-config
+            - secretRef:
+                name: medtracker-secrets
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 15
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
