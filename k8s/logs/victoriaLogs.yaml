@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoria-logs
+  namespace: medtracker
+spec:
+  clusterIP: None
+  selector:
+    app: victoria-logs
+  ports:
+    - port: 9428
+      name: http
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: victoria-logs
+  namespace: medtracker
+spec:
+  serviceName: victoria-logs
+  selector:
+    matchLabels:
+      app: victoria-logs
+  template:
+    metadata:
+      labels:
+        app: victoria-logs
+    spec:
+      containers:
+        - name: victoria-logs
+          image: victoriametrics/victoria-logs:v1.53.0
+          args:
+            - -storageDataPath=/victoria-logs-data
+            - -retentionPeriod=7d
+          ports:
+            - containerPort: 9428
+              name: http
+          readinessProbe:
+            httpGet:
+              port: 9428
+              path: /health
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: /victoria-logs-data
+              name: vl-data
+  volumeClaimTemplates:
+    - metadata:
+        name: vl-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi

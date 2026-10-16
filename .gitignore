@@ -38,6 +38,6 @@ out/
 
 ### Local env ###
 .env
-.env.example
+*.sh
 Отчёт.md
 Отчет2.md

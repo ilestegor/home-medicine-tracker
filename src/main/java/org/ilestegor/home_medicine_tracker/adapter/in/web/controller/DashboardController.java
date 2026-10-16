@@ -1,4 +1,4 @@
-package org.ilestegor.home_medicine_tracker.adapter.in.web;
+package org.ilestegor.home_medicine_tracker.adapter.in.web.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.ilestegor.home_medicine_tracker.adapter.in.web.dto.TodayDoseResponse;

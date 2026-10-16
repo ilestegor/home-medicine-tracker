@@ -50,6 +50,17 @@ logging:
   level:
     root: ${LOG_LEVEL:INFO}
     org.ilestegor.home_medicine_tracker: ${APP_LOG_LEVEL:INFO}
+  structured:
+    format:
+      console: ${LOG_FORMAT:ecs}
+    ecs:
+      service:
+        environment: ${APP_ENV:local}
+    json:
+      stacktrace:
+        root: last
+        max-length: 8192
+        include-common-frames: false
 
 management:
   endpoints:
@@ -72,20 +83,24 @@ spring:
   config:
     activate:
       on-profile: dev
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        highlight_sql: true
+#  jpa:
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        highlight_sql: true
 app:
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:5173,http://localhost:4173}
 
 logging:
+  structured:
+    format:
+      console: ${LOG_FORMAT:}
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m %clr(%kvp){faint}%n%wEx"
   level:
-    # Значения параметров в подготовленных запросах — видно, что реально ушло в БД
-    org.hibernate.orm.jdbc.bind: TRACE
+#    org.hibernate.orm.jdbc.bind: TRACE
     liquibase: INFO
 
 ---
@@ -95,7 +110,3 @@ spring:
       on-profile: prod
   jpa:
     show-sql: false
-logging:
-  structured:
-    format:
-      console: ecs

@@ -1,7 +1,8 @@
-package org.ilestegor.home_medicine_tracker.adapter.in.web;
+package org.ilestegor.home_medicine_tracker.adapter.in.web.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.ilestegor.home_medicine_tracker.adapter.in.web.PageResponse;
 import org.ilestegor.home_medicine_tracker.adapter.in.web.dto.IntakeRecordRequest;
 import org.ilestegor.home_medicine_tracker.adapter.in.web.dto.IntakeRecordResponse;
 import org.ilestegor.home_medicine_tracker.application.common.PageRequest;

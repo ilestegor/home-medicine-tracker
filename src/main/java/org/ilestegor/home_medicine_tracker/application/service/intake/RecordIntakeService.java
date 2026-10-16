@@ -11,6 +11,7 @@ import org.ilestegor.home_medicine_tracker.application.port.out.StockItemPersist
 import org.ilestegor.home_medicine_tracker.domain.model.IntakeRecord;
 import org.ilestegor.home_medicine_tracker.domain.model.Regimen;
 import org.ilestegor.home_medicine_tracker.domain.model.StockItem;
+import org.ilestegor.home_medicine_tracker.domain.model.StockStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ class RecordIntakeService implements RecordIntakeUseCase {
 
         rules.requireNotExpired(stock);
 
+        StockStatus statusBefore = stock.getStatus();
         stock.withdraw(command.amount());
         StockItem saved = stockItems.save(stock);
 
@@ -45,8 +47,28 @@ class RecordIntakeService implements RecordIntakeUseCase {
                 .note(command.note())
                 .build());
 
-        log.info("Приём записан: userId={}, stockItemId={}, принято={}, остаток={}",
-                userId, saved.getId(), command.amount(), saved.getQuantity());
+        log.atInfo()
+                .setMessage("Приём записан")
+                .addKeyValue("event", "intake.recorded")
+                .addKeyValue("userId", userId)
+                .addKeyValue("intakeId", recorded.getId())
+                .addKeyValue("stockItemId", saved.getId())
+                .addKeyValue("medicineId", saved.getMedicine().getId())
+                .addKeyValue("regimenId", regimen != null ? regimen.getId() : null)
+                .addKeyValue("amount", command.amount())
+                .addKeyValue("quantityLeft", saved.getQuantity())
+                .log();
+
+        if (saved.getStatus() != statusBefore) {
+            log.atInfo()
+                    .setMessage("Упаковка сменила статус")
+                    .addKeyValue("event", "stock.status_changed")
+                    .addKeyValue("userId", userId)
+                    .addKeyValue("stockItemId", saved.getId())
+                    .addKeyValue("statusBefore", statusBefore)
+                    .addKeyValue("statusAfter", saved.getStatus())
+                    .log();
+        }
         return recorded;
     }
 }

@@ -1,0 +1,29 @@
+service:
+  flush: 1
+  log_level: info
+
+parsers:
+  - name: app_json
+    format: json
+
+pipeline:
+  inputs:
+    - name: forward
+      listen: 0.0.0.0
+      port: 24224
+
+  filters:
+    - name: parser
+      match: app
+      key_name: log
+      parser: app_json
+      reserve_data: true
+      preserve_key: false
+
+  outputs:
+    - name: http
+      match: app
+      host: victoria_logs
+      port: 9428
+      uri: '/insert/jsonline?_stream_fields=service.name,container_name&_msg_field=message&_time_field=@timestamp'
+      format: json_lines

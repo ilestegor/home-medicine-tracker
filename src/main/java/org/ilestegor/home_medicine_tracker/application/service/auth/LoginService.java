@@ -19,21 +19,41 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class LoginService implements LoginUseCase {
 
+    private static final String REJECTED = "Неверный email или пароль";
+
     private final UserPersistencePort users;
     private final PasswordHasherPort passwords;
     private final AccessTokenPort tokens;
 
     @Override
     public Authenticated login(LoginCommand command) {
-        User user = users.findByEmail(command.email())
-                .filter(u -> passwords.matches(command.password(), u.getPasswordHash()))
-                .orElseThrow(() -> {
-                    log.warn("Неудачный вход: {}", command.email());
-                    return new AuthenticationFailedException("Неверный email или пароль");
-                });
+        User user = users.findByEmail(command.email()).orElse(null);
+        if (user == null) {
+            logFailure("unknown_email", null);
+            throw new AuthenticationFailedException(REJECTED);
+        }
+        if (!passwords.matches(command.password(), user.getPasswordHash())) {
+            logFailure("bad_password", user.getId());
+            throw new AuthenticationFailedException(REJECTED);
+        }
 
         AccessTokenPort.IssuedToken issued = tokens.issue(user);
-        log.info("Вход выполнен: userId={}", user.getId());
+
+        log.atInfo()
+                .setMessage("Вход выполнен")
+                .addKeyValue("event", "auth.login.succeeded")
+                .addKeyValue("userId", user.getId())
+                .addKeyValue("tokenExpiresAt", issued.expiresAt())
+                .log();
         return new Authenticated(user, issued.token(), issued.expiresAt());
+    }
+
+    private void logFailure(String reason, Long userId) {
+        log.atWarn()
+                .setMessage("Неудачный вход")
+                .addKeyValue("event", "auth.login.failed")
+                .addKeyValue("reason", reason)
+                .addKeyValue("userId", userId)
+                .log();
     }
 }
