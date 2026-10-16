@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: medtracker
+  name: fluent-bit
+spec:
+  selector:
+    matchLabels:
+      app: fluent-bit
+  template:
+    metadata:
+      labels:
+        app: fluent-bit
+    spec:
+      containers:
+        - name: fluent-bit
+          image: fluent/fluent-bit:5.0
+          args:
+            - -c
+            - /fluent-bit/config/fluent-bit.yaml
+          resources:
+            requests:
+              cpu: 50m
+              memory: 65Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /fluent-bit/config
+              name: config
+              readOnly: true
+            - mountPath: /var/log/containers
+              name: containers
+              readOnly: true
+            - mountPath: /var/log/pods
+              name: pods
+              readOnly: true
+            - mountPath: /fluent-bit/state
+              name: state
+      volumes:
+        - name: config
+          configMap:
+            name: fluent-bit-config
+        - name: containers
+          hostPath:
+            path: /var/log/containers
+            type: Directory
+        - name: pods
+          hostPath:
+            path: /var/log/pods
+            type: Directory
+        - name: state
+          hostPath:
+            path: /var/lib/fluent-bit
+            type: DirectoryOrCreate

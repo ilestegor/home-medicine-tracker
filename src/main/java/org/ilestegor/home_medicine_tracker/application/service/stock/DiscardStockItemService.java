@@ -25,8 +25,15 @@ class DiscardStockItemService implements DiscardStockItemUseCase {
         item.discard();
         StockItem discarded = stockItems.save(item);
 
-        log.info("Упаковка списана: userId={}, stockItemId={}, остаток={}",
-                userId, id, discarded.getQuantity());
+        log.atInfo()
+                .setMessage("Упаковка выброшена")
+                .addKeyValue("event", "stock.discarded")
+                .addKeyValue("userId", userId)
+                .addKeyValue("stockItemId", id)
+                .addKeyValue("medicineId", discarded.getMedicine().getId())
+                .addKeyValue("quantityLeft", discarded.getQuantity())
+                .addKeyValue("expiresAt", discarded.getExpiresAt())
+                .log();
         return discarded;
     }
 }

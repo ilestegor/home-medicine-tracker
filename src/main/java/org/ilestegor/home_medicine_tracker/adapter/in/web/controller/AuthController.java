@@ -1,4 +1,4 @@
-package org.ilestegor.home_medicine_tracker.adapter.in.web;
+package org.ilestegor.home_medicine_tracker.adapter.in.web.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

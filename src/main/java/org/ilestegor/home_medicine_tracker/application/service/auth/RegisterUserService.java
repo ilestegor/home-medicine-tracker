@@ -35,7 +35,11 @@ class RegisterUserService implements RegisterUserUseCase {
                 .displayName(command.displayName())
                 .build());
 
-        log.info("Регистрация: userId={}, email={}", saved.getId(), saved.getEmail());
+        log.atInfo()
+                .setMessage("Регистрация выполнена")
+                .addKeyValue("event", "auth.register.succeeded")
+                .addKeyValue("userId", saved.getId())
+                .log();
 
         AccessTokenPort.IssuedToken issued = tokens.issue(saved);
         return new Authenticated(saved, issued.token(), issued.expiresAt());

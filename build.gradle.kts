@@ -40,4 +40,5 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    environment("LOG_FORMAT", "")
 }

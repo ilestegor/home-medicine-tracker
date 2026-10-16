@@ -18,6 +18,25 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  victoria_logs:
+    image: victoriametrics/victoria-logs:v1.53.0
+    ports:
+      - "127.0.0.1:9428:9428"
+    volumes:
+      - vl-data:/victoria-logs-data
+    command:
+      - "-storageDataPath=/victoria-logs-data"
+      - "-retentionPeriod=7d"
+
+  fluent_bit:
+    image: fluent/fluent-bit:4.2
+    ports:
+      - "24224:24224"
+    volumes:
+      - ./fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro
+    command: ["-c", "/fluent-bit/etc/fluent-bit.yaml"]
+    depends_on:
+      - victoria_logs
   app:
     profiles: ["full"]
     build:
@@ -27,19 +46,29 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET:}
+      JWT_SECRET: ${JWT_SECRET:-}
       JWT_TTL: ${JWT_TTL:-24h}
       SERVER_PORT: 8080
       APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:-}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ecs
     ports:
-      - "${APP_PORT_RANGE:-8080-8090}:8080"
+      - "${APP_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      fluent_bit:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "app"
     stop_grace_period: 30s
     restart: unless-stopped
 
 volumes:
   pgdata:
+  vl-data:
