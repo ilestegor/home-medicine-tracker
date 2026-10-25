@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  namespace: medtracker
+  namespace: logging
   name: fluent-bit
 spec:
   selector:
@@ -50,5 +50,5 @@ spec:
             type: Directory
         - name: state
           hostPath:
-            path: /var/lib/fluent-bit
+            path: /var/lib/fluent-bit-logging
             type: DirectoryOrCreate

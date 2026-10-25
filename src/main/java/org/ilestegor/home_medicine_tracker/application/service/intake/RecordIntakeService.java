@@ -3,6 +3,7 @@ package org.ilestegor.home_medicine_tracker.application.service.intake;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ilestegor.home_medicine_tracker.application.event.BusinessMetricEvents;
 import org.ilestegor.home_medicine_tracker.application.port.in.intake.RecordIntakeUseCase;
 import org.ilestegor.home_medicine_tracker.application.port.in.intake.command.RecordIntakeCommand;
 import org.ilestegor.home_medicine_tracker.application.port.out.CurrentUserPort;
@@ -12,6 +13,7 @@ import org.ilestegor.home_medicine_tracker.domain.model.IntakeRecord;
 import org.ilestegor.home_medicine_tracker.domain.model.Regimen;
 import org.ilestegor.home_medicine_tracker.domain.model.StockItem;
 import org.ilestegor.home_medicine_tracker.domain.model.StockStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ class RecordIntakeService implements RecordIntakeUseCase {
     private final StockItemPersistencePort stockItems;
     private final IntakeRules rules;
     private final CurrentUserPort currentUser;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     public IntakeRecord record(RecordIntakeCommand command) {
@@ -69,6 +72,9 @@ class RecordIntakeService implements RecordIntakeUseCase {
                     .addKeyValue("statusAfter", saved.getStatus())
                     .log();
         }
+
+        publisher.publishEvent(new BusinessMetricEvents.IntakeRecorded(saved.getMedicine().getForm()));
+
         return recorded;
     }
 }

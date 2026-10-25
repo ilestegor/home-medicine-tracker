@@ -14,6 +14,7 @@ import org.ilestegor.home_medicine_tracker.domain.model.StockItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -25,6 +26,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 class RecordIntakeServiceTest {
     private static final LocalDate TODAY = LocalDate.of(2026, 3, 15);
@@ -40,7 +42,8 @@ class RecordIntakeServiceTest {
         intakes = new StubIntakes();
         regimens = new StubRegimens();
         service = new RecordIntakeService(intakes, stockItems,
-                new IntakeRules(regimens, new FixedClock()), () -> USER_ID);
+                new IntakeRules(regimens, new FixedClock()), () -> USER_ID,
+                mock(ApplicationEventPublisher.class));
     }
     private static Medicine medicine(long id, String name) {
         return Medicine.builder().id(id).name(name).unit("шт").build();

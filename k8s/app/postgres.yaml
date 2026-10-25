@@ -27,6 +27,10 @@ spec:
     metadata:
       labels:
         app: postgres
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: postgres
@@ -73,6 +77,24 @@ spec:
               memory: 256Mi
             limits:
               memory: 512Mi
+        - name: postgres-exporter
+          image: prometheuscommunity/postgres-exporter:v0.20.1
+          env:
+            - name: DATA_SOURCE_URI
+              value: "localhost:5432/medtracker?sslmode=disable"
+            - name: DATA_SOURCE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: medtracker-config
+                  key: POSTGRES_USER
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_PASSWORD
+                  name: medtracker-secrets
+          ports:
+            - name: metrics
+              containerPort: 9187
   volumeClaimTemplates:
     - metadata:
         name: pgdata

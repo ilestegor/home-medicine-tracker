@@ -2,6 +2,7 @@ package org.ilestegor.home_medicine_tracker.application.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ilestegor.home_medicine_tracker.application.event.BusinessMetricEvents;
 import org.ilestegor.home_medicine_tracker.application.port.in.auth.LoginUseCase;
 import org.ilestegor.home_medicine_tracker.application.port.in.auth.command.LoginCommand;
 import org.ilestegor.home_medicine_tracker.application.port.in.auth.model.Authenticated;
@@ -10,6 +11,7 @@ import org.ilestegor.home_medicine_tracker.application.port.out.PasswordHasherPo
 import org.ilestegor.home_medicine_tracker.application.port.out.UserPersistencePort;
 import org.ilestegor.home_medicine_tracker.domain.exception.AuthenticationFailedException;
 import org.ilestegor.home_medicine_tracker.domain.model.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,16 +26,19 @@ class LoginService implements LoginUseCase {
     private final UserPersistencePort users;
     private final PasswordHasherPort passwords;
     private final AccessTokenPort tokens;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     public Authenticated login(LoginCommand command) {
         User user = users.findByEmail(command.email()).orElse(null);
         if (user == null) {
             logFailure("unknown_email", null);
+            publisher.publishEvent(new BusinessMetricEvents.LoginFailed(BusinessMetricEvents.LoginFailureReason.UNKNOWN_EMAIL));
             throw new AuthenticationFailedException(REJECTED);
         }
         if (!passwords.matches(command.password(), user.getPasswordHash())) {
             logFailure("bad_password", user.getId());
+            publisher.publishEvent(new BusinessMetricEvents.LoginFailed(BusinessMetricEvents.LoginFailureReason.BAD_PASSWORD));
             throw new AuthenticationFailedException(REJECTED);
         }
 
@@ -45,6 +50,8 @@ class LoginService implements LoginUseCase {
                 .addKeyValue("userId", user.getId())
                 .addKeyValue("tokenExpiresAt", issued.expiresAt())
                 .log();
+
+        publisher.publishEvent(new BusinessMetricEvents.LoginSucceeded());
         return new Authenticated(user, issued.token(), issued.expiresAt());
     }
 

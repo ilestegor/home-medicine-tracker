@@ -1,6 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: medtracker
+namespace: logging
 resources:
   - fluent-bit-daemon-set.yaml
   - victoriaLogs.yaml
