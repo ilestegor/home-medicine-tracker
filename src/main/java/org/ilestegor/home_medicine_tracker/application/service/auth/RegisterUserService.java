@@ -2,6 +2,7 @@ package org.ilestegor.home_medicine_tracker.application.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ilestegor.home_medicine_tracker.application.event.BusinessMetricEvents;
 import org.ilestegor.home_medicine_tracker.application.port.in.auth.RegisterUserUseCase;
 import org.ilestegor.home_medicine_tracker.application.port.in.auth.command.RegisterUserCommand;
 import org.ilestegor.home_medicine_tracker.application.port.in.auth.model.Authenticated;
@@ -10,6 +11,7 @@ import org.ilestegor.home_medicine_tracker.application.port.out.PasswordHasherPo
 import org.ilestegor.home_medicine_tracker.application.port.out.UserPersistencePort;
 import org.ilestegor.home_medicine_tracker.domain.exception.BusinessRuleException;
 import org.ilestegor.home_medicine_tracker.domain.model.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ class RegisterUserService implements RegisterUserUseCase {
     private final UserPersistencePort users;
     private final PasswordHasherPort passwords;
     private final AccessTokenPort tokens;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     public Authenticated register(RegisterUserCommand command) {
@@ -42,6 +45,7 @@ class RegisterUserService implements RegisterUserUseCase {
                 .log();
 
         AccessTokenPort.IssuedToken issued = tokens.issue(saved);
+        publisher.publishEvent(new BusinessMetricEvents.UserRegistered());
         return new Authenticated(saved, issued.token(), issued.expiresAt());
     }
 }

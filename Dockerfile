@@ -13,5 +13,5 @@ RUN addgroup -S app && adduser -S -G app app
 WORKDIR /app
 COPY --from=build /build/build/libs/*.jar app.jar
 USER app
-EXPOSE 8080
+EXPOSE 8080 9090
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]

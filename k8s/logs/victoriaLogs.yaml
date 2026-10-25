@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: victoria-logs
-  namespace: medtracker
+  namespace: logging
 spec:
   clusterIP: None
   selector:
@@ -16,7 +16,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: victoria-logs
-  namespace: medtracker
+  namespace: logging
 spec:
   serviceName: victoria-logs
   selector:
